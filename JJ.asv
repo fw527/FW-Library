@@ -1,0 +1,10 @@
+function J = JJ(x)
+J = eye(4); % 4x4 identity matrix
+u = sum(x);
+
+df = - sin([1:4]'*u)*exp(cos([1:4]'*u));
+for i=1:4
+for j=1:4
+J(i,j) = J(i,j)+ j*df; % HAVE TO ADD J ij =d fi /d xj HERE
+end
+end
