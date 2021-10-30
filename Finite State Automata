@@ -1,0 +1,255 @@
+import java.util.*;
+ 
+     
+public class FSABubble
+{
+ public static boolean [] isBadArray = new boolean[20];
+ public static boolean [] canLoopArray = new boolean[20];
+ static Random gen = new Random();
+ public boolean accept;
+ public int whereTo0;
+ public int whereTo1;
+ public static String RegEx;
+ 
+  FSABubble(boolean Accepted, int go0, int go1){ 
+    accept=Accepted;
+    whereTo0=go0-48;
+    whereTo1=go1-48;
+   
+  }
+ 
+ 
+  public ArrayList<FSABubble> bublist = new ArrayList<FSABubble>();
+  private static Scanner gte;
+private static Scanner scanIn;
+  public static void printerMethod(ArrayList <FSABubble> testCase){
+  for (int i=0; i<=testCase.size()-1; i++){ 
+   System.out.println(testCase.get(i).accept);
+   System.out.println(testCase.get(i).whereTo0);
+   System.out.println(testCase.get(i).whereTo1);
+  }
+  }
+ 
+  public static boolean accepter (String input, ArrayList<FSABubble> inputFSA, int startState){
+ 
+   String testString = input;
+   ArrayList<FSABubble> copyofinputFSA = inputFSA;
+   boolean isAccepted = false;
+  
+   FSABubble currentSt = new FSABubble(copyofinputFSA.get(0).accept, copyofinputFSA.get(0).whereTo0, copyofinputFSA.get(0).whereTo1);  
+ int numState=startState;
+ for (int i =0; i<testString.length();i++){
+ if(testString.charAt(i)==0){
+  numState=copyofinputFSA.get(numState).whereTo0;
+ }
+ 
+ else{
+ numState=copyofinputFSA.get(numState).whereTo1;
+   }
+ 
+ currentSt = copyofinputFSA.get(numState);
+ isAccepted = currentSt.accept;
+   }
+ 
+ return isAccepted;
+}
+ 
+ 
+ public static FSABubble addState(){
+  gte = new Scanner(System.in);
+    System.out.println("Input state data");
+   String userinput_yn_01_01 = gte.nextLine();
+  
+    boolean acc;
+    if (userinput_yn_01_01.charAt(0)=='y'){
+    acc=true;
+    }
+    else{
+    acc=false;
+    }
+   
+    int send0=(int)userinput_yn_01_01.charAt(1);
+    int send1=(int)userinput_yn_01_01.charAt(2);
+   return new FSABubble(acc,send0,send1);
+  }
+ public static void initializeArrays(ArrayList<FSABubble> input){ //true if BAD
+ for(int i=0; i<input.size();i++){
+  isBadArray[i]=false;
+ }
+ for(int i=0; i<input.size();i++){
+  canLoopArray[i]=false;
+ }
+ 
+ for (int g=input.size()-1;g>=0;g--){
+ FSABubble currentState=input.get(g);
+ if((!currentState.accept)&&(currentState.whereTo0==currentState.whereTo1)&&(currentState.whereTo1==g)){
+  isBadArray[g]=true;
+ }
+ if(currentState.whereTo0==currentState.whereTo1&&isBadArray[currentState.whereTo0]){
+  isBadArray[g]=true;
+ }
+ }
+}
+public static String mathLanguage(ArrayList<FSABubble> input, int start){
+ //initializes the String and ArrayList
+ String c="";
+ c+="{";
+ ArrayList<String>returnString = new ArrayList<String>();
+ ArrayList<FSABubble>copyofInput=input;
+ ArrayList<Integer>StatesVisitedAlready = new ArrayList<Integer>();
+ //walks through the ArrayList, creating a RegEx in the math language accordingly
+ boolean OrWithinANOr=true;
+ 
+ 
+ int numS=start;
+ boolean LooperB = true;
+ while(LooperB){///////////////////////////////////////////////////////////////
+  
+ int b0=copyofInput.get(numS).whereTo0;
+ int b1=copyofInput.get(numS).whereTo1;
+ 
+ boolean a0=(isBadArray[b0]);
+ boolean a1=(isBadArray[b1]);
+ 
+ StatesVisitedAlready.add(numS);
+ 
+ 
+ int g=numS;
+ int a=numS;
+ int zcount=0;
+ if(zcount==0){
+  returnString.add("");
+  zcount=10000;
+ }
+// System.out.println(a);
+ //System.out.println(g);
+ 
+ if (b0==numS&&b1!=numS){
+  if(!copyofInput.get(b0).accept){
+  returnString.add(" 0*1");
+  }
+  else{
+   returnString.add("0*");
+  }
+  g=b1;
+ }
+ else if (b1==numS&&b0!=numS){
+  
+  if(!copyofInput.get(b1).accept){
+   returnString.add(" 1*0");
+   }
+   else{
+    returnString.add("1*");
+   }
+  g=b0;
+ }
+ else if(b0==b1&&copyofInput.get(b0).accept&copyofInput.get(b1).accept){
+  g=b1;
+  if(b0==numS){
+   returnString.add("{0U1}*");
+  }
+  else{
+  returnString.add(" 0U1");
+  }
+ }
+ 
+ else if(b0==b1&&!copyofInput.get(b0).accept||!copyofInput.get(b1).accept){
+  
+  boolean groo=true;
+  for (int m = 0;m<StatesVisitedAlready.size();m++){
+   if (b0==StatesVisitedAlready.get(m)&&b0!=numS){
+    groo=false;
+   }
+   if(groo){
+  returnString.add(" 0U1");
+  }
+  }
+  g=b1;
+ }
+ else if (copyofInput.get(b0).accept&copyofInput.get(b1).accept){
+  g=b1;
+  returnString.add(" 0U1");
+ }
+
+ else if(!a0&a1){
+  g = b0;
+  returnString.add(" 0");
+ }
+ 
+ else if(a0&!a1){
+  g = b1;
+  returnString.add(" 1");
+ }
+ 
+ else if(!StatesVisitedAlready.contains(b0)&&!StatesVisitedAlready.contains(b1)&&b0!=b1&&!a0&&!a1&&OrWithinANOr){
+  returnString.add(mathLanguage(copyofInput, b0)+"U"+mathLanguage(copyofInput, b1));
+  OrWithinANOr=false;
+ }
+ 
+ 
+ 
+ //System.out.println(a);
+           //looping
+  if (StatesVisitedAlready.size()>a&&returnString.size()>a){
+  for (int m = 0;m<StatesVisitedAlready.size();m++){
+   if (b0==StatesVisitedAlready.get(m)&&b0!=numS){
+    String y = returnString.get(numS);
+    String z = returnString.get(b0);
+    returnString.set(numS, y+="0}* 1");
+    returnString.set(b0, "{"+z);
+    g=b1;
+   }
+   else if (b1==StatesVisitedAlready.get(m)&&b1!=numS){
+    String y = returnString.get(numS);
+    String z = returnString.get(b1);
+    returnString.set(numS, y+="1}* 0");
+    returnString.set(b1, "{"+z);
+    g=b0;
+   }
+  }
+  }
+ //end notation part
+  LooperB = (!copyofInput.get(numS).accept);
+ numS=g;
+ 
+ b0=copyofInput.get(numS).whereTo0;
+ b1=copyofInput.get(numS).whereTo1;
+// System.out.println(numS);
+ 
+ }
+ //s edit
+
+ for (int f=0;f<returnString.size();f++){
+  c+=returnString.get(f);
+ }
+ c+="}";
+return c;
+}
+
+ 
+public static void main(String[] args)
+  {
+ 
+ int stateTracker = 0;
+    ArrayList<FSABubble> bublist = new ArrayList<FSABubble>(); //This is the FSA, represented as an Arraylist, the most important part of this code.
+    while (true){
+     bublist.add(addState());
+     scanIn = new Scanner (System.in);
+     System.out.println("State S" + stateTracker + " completed.");
+     stateTracker++;
+     String end = scanIn.nextLine();
+     if (end.equals("end")){
+      break;
+     }
+    }
+   
+ //  printerMethod(bublist);
+ //  initializeArrays(bublist);
+//   System.out.println(isBadArray);
+  // for(int i=0; i<bublist.size();i++){
+ // System.out.println(isBadArray[i]);
+ //}
+    System.out.print(mathLanguage(bublist,0));
+ 
+  
+   }}
